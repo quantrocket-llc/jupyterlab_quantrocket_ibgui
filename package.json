@@ -1,18 +1,15 @@
 {
-  "name": "jupyterlab_sandbox",
+  "name": "jupyterlab_quantrocket_ibgui",
   "version": "0.1.0",
-  "description": "Load webpages as sandboxed IFrames embedded in panels",
+  "description": "Load IB Gateway GUI as IFrames embedded in panels",
   "keywords": [
     "extension",
     "jupyter",
     "jupyterlab"
   ],
-  "homepage": "https://github.com/canavandl/jupyterlab_sandbox",
-  "bugs": {
-    "url": "https://github.com/canavandl/jupyterlab_sandbox/issues"
-  },
+  "homepage": "https://www.quantrocket.com",
   "license": "BSD-3-Clause",
-  "author": "Luke Canavan",
+  "author": "QuantRocket LLC",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
@@ -21,7 +18,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/canavandl/jupyterlab_sandbox.git"
+    "url": "https://github.com/quantrocket-llc/jupyterlab_quantrocket_ibgui.git"
   },
   "scripts": {
     "build": "tsc",

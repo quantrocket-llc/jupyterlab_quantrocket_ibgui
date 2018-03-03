@@ -1,5 +1,4 @@
 import {
-  ILayoutRestorer,
   JupyterLab,
   JupyterLabPlugin
 } from '@jupyterlab/application'
@@ -7,8 +6,6 @@ import {
 import {
   ICommandPalette,
   IFrame,
-  showDialog,
-  Dialog,
   IInstanceTracker,
   InstanceTracker
 } from '@jupyterlab/apputils'
@@ -18,16 +15,12 @@ import {
 } from '@phosphor/coreutils';
 
 import {
-  Widget,
   Panel
 } from '@phosphor/widgets';
 
+// TODO: there is a lot of extraneous code since this branch doesn't use iframes
 
-// import '../style/index.css';
-
-
-export class Sandbox extends Panel {
-  private _sandBox: SandboxNS.TSandboxOptions
+export class IBGPanel extends Panel {
   private _frame: IFrame
 
   constructor() {
@@ -40,19 +33,6 @@ export class Sandbox extends Panel {
     return this.node.querySelector('iframe')
   }
 
-  get sandboxAttr() {
-    return Object.keys(this._sandBox || {}).join(' ');
-  }
-
-  get sandBox() {
-    return this._sandBox
-  }
-
-  set sandBox(attrs: SandboxNS.TSandboxOptions) {
-    this._sandBox = attrs
-    this.iframeNode.setAttribute('sandbox', this.sandboxAttr)
-  }
-
   get url() {
     return this._frame.url
   }
@@ -62,69 +42,16 @@ export class Sandbox extends Panel {
   }
 }
 
-
-class SandboxModal extends Widget {
-  constructor() {
-    let body = document.createElement("div")
-    let label = document.createElement("label")
-    label.textContent = 'Input a valid url'
-    let input = document.createElement("input")
-    // perhaps should just match window.location.protocol?
-    input.placeholder = "protocol:host"
-    body.appendChild(label)
-    body.appendChild(input)
-    super({ node: body })
-  }
-
-  get inputNode(): HTMLInputElement {
-    return this.node.querySelector('input') as HTMLInputElement;
-  }
-
-  getValue(): string {
-    return this.inputNode.value;
-  }
-}
-
-
-/** A namespace for all `iframe`-related things
- */
-export namespace SandboxNS {
-  /** The list of HTML iframe sandbox options
-   *
-   *  https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attr-sandbox
-   */
-  export type TSandboxPerm = 'allow-forms' | 'allow-modals' | 'orientation-lock' |
-    'allow-pointer-lock' | 'allow-popups' | 'allow-popups-to-escape-sandbox' |
-    'allow-presentation' | 'allow-same-origin' | 'allow-scripts' | 'allow-top-navigation';
-
-
-  /** A type that can enable sandbox permissions */
-  export type TSandboxOptions = {[P in TSandboxPerm]?: boolean};
-
-  /** Generally useful subset of permissions that can run things like JupyterLab and Bokeh */
-  export const DEFAULT_SANDBOX: TSandboxOptions = {
-    'allow-forms': true,
-    'allow-presentation': true,
-    'allow-same-origin': true,
-    'allow-scripts': true,
-  };
-
-  // @todo: implement error handling
-  // export type TSandBoxProblem = 'no-src' | 'insecure-origin' | 'protocol-mismatch';
-}
-
-
 namespace Private {
   let counter = 0
-  export const namespace = 'sandbox-ext';
+  export const namespace = 'ibg-ext';
 
-  export function createSandbox(url: string, options: SandboxNS.TSandboxOptions): Sandbox {
-    let frame = new Sandbox()
+  export function createIBGPanel(gateway: string): IBGPanel {
+    let frame = new IBGPanel()
     frame.id = `${namespace}-${++counter}`
-    frame.title.label = 'Sandbox'
+    frame.title.label = gateway
     frame.title.closable = true
-    frame.sandBox = options
-    frame.url = url
+    frame.url = "/" + gateway + "/vnc"
     return frame
   }
 }
@@ -133,70 +60,49 @@ namespace Private {
  * The command IDs used by the launcher plugin.
  */
 namespace CommandIDs {
-  export const create = 'sandbox:create'
-  export const restore = 'sandbox:restore'
+  export const create = 'ibg:create'
 }
 
-
 /**
- * A class that tracks sandbox widgets.
+ * A class that tracks IBG widgets.
  */
-export interface ISandboxTracker extends IInstanceTracker<Sandbox>{}
+export interface IBGPanelTracker extends IInstanceTracker<IBGPanel>{}
 
 
 /**
  * The editor tracker token.
  */
-export const ISandboxTracker = new Token<ISandboxTracker>('jupyterlab_sandbox:ISandboxTracker');
+export const IBGPanelTracker = new Token<IBGPanelTracker>('jupyterlab_quantrocket_ibgui:IBGPanelTracker');
 
-
-const extension: JupyterLabPlugin<ISandboxTracker> = {
-  id: 'jupyterlab_sandbox',
+const extension: JupyterLabPlugin<IBGPanelTracker> = {
+  id: 'jupyterlab_quantrocket_ibgui',
   autoStart: true,
-  requires: [ICommandPalette, ILayoutRestorer],
-  provides: ISandboxTracker,
-  activate: (app: JupyterLab, palette: ICommandPalette, restorer: ILayoutRestorer) => {
-    const tracker = new InstanceTracker<Sandbox>({ namespace: Private.namespace })
-
-    // Handle state restoration.
-    restorer.restore(tracker, {
-      command: CommandIDs.restore,
-      args: (widget) => ({url: widget.url, sandbox: widget.sandbox}),
-      name: () => Private.namespace
-    });
-
-    // not added to palette, only exists to reload page without modal creation
-    app.commands.addCommand(CommandIDs.restore, {
-      execute: (args) => {
-        const url = args['url'] as string
-        // fixme: should pass in args['sandbox'] to createSandbox but it's always undefined
-        // const options = args['sandbox'] as Sandbox.TSandboxOptions
-        let frame = Private.createSandbox(url, SandboxNS.DEFAULT_SANDBOX)
-        tracker.add(frame)
-        app.shell.addToMainArea(frame)
-      }
-    })
+  requires: [ICommandPalette],
+  provides: IBGPanelTracker,
+  activate: (app: JupyterLab, palette: ICommandPalette) => {
+    const tracker = new InstanceTracker<IBGPanel>({ namespace: Private.namespace })
 
     app.commands.addCommand(CommandIDs.create, {
-      label: 'Open Web Page',
+      label: 'IB Gateway GUI',
       execute: (args) => {
-        showDialog({
-          title: 'Open a Web Page',
-          body: new SandboxModal(),
-          buttons: [Dialog.cancelButton(), Dialog.okButton()],
-          focusNodeSelector: 'input'
-        }).then(result => {
-          if (!result.value) {
-            return null;
-          }
-          let frame = Private.createSandbox(result.value, SandboxNS.DEFAULT_SANDBOX)
-          tracker.add(frame)
-          app.shell.addToMainArea(frame)
-          return Promise.resolve()
-        })
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', '/launchpad/gateways');
+          xhr.onload = function() {
+              if (xhr.status == 200) {
+                  let gateways = JSON.parse(xhr.responseText)
+                  for (let gateway in gateways) {
+                      window.open("/" + gateway + "/vnc", '_blank')
+                  }
+                  return Promise.resolve()
+              }
+              else {
+                  alert('Error retrieving list of IB Gateways: ' + xhr.status + ' ' + xhr.responseText);
+              }
+          };
+          xhr.send();
       }
     })
-    palette.addItem({ command: CommandIDs.create, category: 'Sandbox' });
+    palette.addItem({ command: CommandIDs.create, category: 'QuantRocket' });
     return tracker
   }
 };

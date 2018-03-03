@@ -1,5 +1,5 @@
 {
-  "name": "jupyterlab_quantrocket_ibgui",
+  "name": "@quantrocket/jupyterlab_quantrocket_ibgui",
   "version": "0.1.0",
   "description": "Load IB Gateway GUI in Jupyter Lab",
   "keywords": [

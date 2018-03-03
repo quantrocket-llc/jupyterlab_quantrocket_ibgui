@@ -1,32 +1,5 @@
-# jupyterlab_sandbox
+# jupyterlab_quantrocket_ibgui
 
-Load webpages as sandboxed IFrames embedded in panels
+Jupyter Lab extension for [QuantRocket](https://www.quantrocket.com) that opens IB Gateway in a new window.
 
-
-## Prerequisites
-
-* JupyterLab
-
-## Installation
-
-```bash
-jupyter labextension install jupyterlab_sandbox
-```
-
-## Development
-
-For a development install (requires npm version 4 or later), do the following in the repository directory:
-
-```bash
-npm install
-npm run build
-jupyter labextension link .
-```
-
-To rebuild the package and the JupyterLab app:
-
-```bash
-npm run build
-jupyter lab build
-```
-
+For installation and usage documentation, please visit: https://www.quantrocket.com/docs/

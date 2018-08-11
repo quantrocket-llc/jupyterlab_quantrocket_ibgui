@@ -1,6 +1,6 @@
 {
   "name": "@quantrocket/jupyterlab_quantrocket_ibgui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Load IB Gateway GUI in Jupyter Lab",
   "keywords": [
     "extension",
@@ -26,8 +26,8 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.15.0",
-    "@jupyterlab/apputils": "^0.15.0",
+    "@jupyterlab/application": ">=0.15.0",
+    "@jupyterlab/apputils": ">=0.15.0",
     "@phosphor/coreutils": "^1.3.0",
     "@phosphor/virtualdom": "^1.1.2",
     "@phosphor/widgets": "^1.5.0"
